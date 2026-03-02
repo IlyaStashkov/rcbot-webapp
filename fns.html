@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ФНС Авторизация</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, sans-serif; background: var(--tg-theme-bg-color, #fff); color: var(--tg-theme-text-color, #222); padding: 20px; }
+h2 { font-size: 20px; margin-bottom: 6px; }
+.sub { font-size: 13px; color: #888; margin-bottom: 24px; }
+label { font-size: 14px; font-weight: 600; display: block; margin-bottom: 6px; }
+input { width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; background: var(--tg-theme-secondary-bg-color, #f5f5f5); color: var(--tg-theme-text-color, #222); margin-bottom: 16px; }
+input:focus { outline: none; border-color: #2481cc; }
+button { width: 100%; padding: 14px; background: #2481cc; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
+button:active { opacity: 0.85; }
+.error { color: #e53935; font-size: 13px; margin-top: -10px; margin-bottom: 14px; display: none; }
+.loading { display: none; text-align: center; padding: 20px; color: #888; }
+.success { display: none; text-align: center; padding: 30px 20px; }
+.success .icon { font-size: 56px; margin-bottom: 14px; }
+.success h3 { font-size: 20px; margin-bottom: 8px; }
+.success p { font-size: 14px; color: #888; }
+.row { display: flex; gap: 10px; margin-top: 20px; }
+.stat { flex: 1; background: var(--tg-theme-secondary-bg-color, #f5f5f5); border-radius: 10px; padding: 12px; text-align: center; }
+.stat .val { font-size: 18px; font-weight: 700; }
+.stat .lbl { font-size: 11px; color: #888; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div id="form-view">
+  <h2>🔐 Войти в ФНС</h2>
+  <p class="sub">Личный кабинет ИП — lkip.nalog.ru</p>
+  <label>ИНН</label>
+  <input id="inn" type="number" placeholder="041100124864" inputmode="numeric">
+  <label>Пароль</label>
+  <input id="pwd" type="password" placeholder="Пароль от ЛК ФНС">
+  <div class="error" id="err"></div>
+  <button onclick="doLogin()">Войти и загрузить данные</button>
+  <p style="font-size:12px;color:#aaa;margin-top:14px;text-align:center">Данные передаются напрямую в ФНС и хранятся зашифрованно</p>
+</div>
+
+<div class="loading" id="loading-view">
+  <div style="font-size:40px">🔄</div>
+  <p style="margin-top:12px">Подключаюсь к ФНС...</p>
+</div>
+
+<div class="success" id="success-view">
+  <div class="icon">✅</div>
+  <h3>ФНС подключён!</h3>
+  <div class="row" id="stats-row"></div>
+</div>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+function show(id) {
+  ['form-view','loading-view','success-view'].forEach(v => {
+    document.getElementById(v).style.display = v === id ? 'block' : 'none';
+  });
+}
+
+async function doLogin() {
+  const inn = document.getElementById('inn').value.trim();
+  const pwd = document.getElementById('pwd').value.trim();
+  const err = document.getElementById('err');
+  err.style.display = 'none';
+  if (!inn || inn.length < 10) { err.textContent = 'Введи ИНН (10 или 12 цифр)'; err.style.display='block'; return; }
+  if (!pwd) { err.textContent = 'Введи пароль'; err.style.display='block'; return; }
+  
+  show('loading-view');
+  
+  try {
+    // Запрос идёт с браузера пользователя (в России) — nalog.ru доступен
+    const r = await fetch('https://lkip2.nalog.ru/api/v1/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'User-Agent': 'okhttp/4.9.0'},
+      body: JSON.stringify({inn, password: pwd})
+    });
+    const data = await r.json();
+    
+    if (!data.token) {
+      show('form-view');
+      err.textContent = data.message || 'Неверный ИНН или пароль';
+      err.style.display = 'block';
+      return;
+    }
+    
+    // Получаем данные
+    const token = data.token;
+    let income = 0, taxPaid = 0, debt = 0;
+    
+    try {
+      const r2 = await fetch('https://lkip2.nalog.ru/api/v1/usn/income', {
+        headers: {'Authorization': 'Bearer ' + token}
+      });
+      const d2 = await r2.json();
+      income  = d2.income || 0;
+      taxPaid = d2.taxPaid || d2.tax_paid || 0;
+      debt    = d2.debt || 0;
+    } catch(e) {}
+    
+    // Показываем результат
+    document.getElementById('stats-row').innerHTML = `
+      <div class="stat"><div class="val">${fmt(income)}</div><div class="lbl">Доходы</div></div>
+      <div class="stat"><div class="val">${fmt(taxPaid)}</div><div class="lbl">Уплачено</div></div>
+      <div class="stat"><div class="val">${fmt(debt)}</div><div class="lbl">Долг</div></div>
+    `;
+    show('success-view');
+    
+    // Отправляем данные боту
+    tg.sendData(JSON.stringify({
+      inn, token,
+      refresh: data.refreshToken || '',
+      income_ytd: income,
+      tax_paid: taxPaid,
+      debt: debt
+    }));
+    
+    setTimeout(() => tg.close(), 2500);
+    
+  } catch(e) {
+    show('form-view');
+    err.textContent = 'Ошибка соединения: ' + e.message;
+    err.style.display = 'block';
+  }
+}
+
+function fmt(n) {
+  return Math.round(n).toLocaleString('ru') + ' ₽';
+}
+</script>
+</body>
+</html>
