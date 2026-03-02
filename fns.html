@@ -6,171 +6,144 @@
 <title>ФНС Авторизация</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, sans-serif; background: var(--tg-theme-bg-color,#fff); color: var(--tg-theme-text-color,#222); padding: 20px; }
-h2 { font-size: 20px; margin-bottom: 6px; }
-.sub { font-size: 13px; color: #888; margin-bottom: 24px; }
-label { font-size: 14px; font-weight: 600; display: block; margin-bottom: 6px; }
-input { width: 100%; padding: 12px 14px; border: 1.5px solid #ddd; border-radius: 10px; font-size: 16px; background: var(--tg-theme-secondary-bg-color,#f5f5f5); color: var(--tg-theme-text-color,#222); margin-bottom: 16px; }
-input:focus { outline: none; border-color: #2481cc; }
-button { width: 100%; padding: 14px; background: #2481cc; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
-button.secondary { background: #f0f0f0; color: #555; font-size: 14px; padding: 12px; }
-button:active { opacity: 0.85; }
-.error { color: #e53935; font-size: 13px; margin-top: -10px; margin-bottom: 14px; }
-.loading { text-align: center; padding: 40px 20px; }
-.loading .spin { font-size: 40px; animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.success { text-align: center; padding: 30px 20px; }
-.success .icon { font-size: 56px; margin-bottom: 14px; }
-.success h3 { font-size: 20px; margin-bottom: 8px; }
-.row { display: flex; gap: 10px; margin-top: 16px; }
-.stat { flex:1; background:var(--tg-theme-secondary-bg-color,#f5f5f5); border-radius:10px; padding:12px; text-align:center; }
-.stat .val { font-size: 16px; font-weight: 700; }
-.stat .lbl { font-size: 11px; color: #888; margin-top:2px; }
-.manual { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
-.manual h4 { margin-bottom: 12px; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,sans-serif; background:var(--tg-theme-bg-color,#fff); color:var(--tg-theme-text-color,#222); padding:20px; min-height:100vh; }
+h2 { font-size:20px; margin-bottom:6px; }
+.sub { font-size:13px; color:#888; margin-bottom:22px; }
+label { font-size:13px; font-weight:600; display:block; margin-bottom:6px; color:#555; }
+input { width:100%; padding:12px 14px; border:1.5px solid #ddd; border-radius:10px; font-size:16px; background:var(--tg-theme-secondary-bg-color,#f5f5f5); color:var(--tg-theme-text-color,#222); margin-bottom:14px; outline:none; }
+input:focus { border-color:#2481cc; }
+.btn { width:100%; padding:14px; background:#2481cc; color:#fff; border:none; border-radius:12px; font-size:16px; font-weight:600; cursor:pointer; margin-bottom:8px; }
+.btn:active { opacity:.85; }
+.btn.grey { background:#f0f0f0; color:#555; font-size:14px; padding:11px; }
+.err { color:#e53935; font-size:13px; margin:-8px 0 12px; padding:8px 10px; background:#fff0f0; border-radius:8px; }
+.loading { text-align:center; padding:50px 20px; }
+.spin { font-size:42px; display:inline-block; animation:sp 1.2s linear infinite; }
+@keyframes sp { to { transform:rotate(360deg); } }
+.success { text-align:center; padding:30px 16px; }
+.ok-icon { font-size:60px; margin-bottom:12px; }
+.stats { display:flex; gap:8px; margin-top:16px; }
+.stat { flex:1; background:var(--tg-theme-secondary-bg-color,#f5f5f5); border-radius:10px; padding:12px 8px; text-align:center; }
+.stat b { display:block; font-size:15px; }
+.stat small { font-size:10px; color:#888; margin-top:2px; display:block; }
+.manual { margin-top:18px; padding-top:18px; border-top:1px solid #eee; }
+.manual h4 { font-size:15px; margin-bottom:14px; color:#555; }
+.hint { font-size:11px; color:#aaa; text-align:center; margin-top:6px; }
 </style>
 </head>
 <body>
-<div id="app">
+
+<div id="v-form">
   <h2>🔐 Войти в ФНС</h2>
   <p class="sub">Личный кабинет ИП — lkip.nalog.ru</p>
-  <label>ИНН</label>
-  <input id="inn" type="tel" placeholder="041100124864" inputmode="numeric">
-  <label>Пароль</label>
-  <input id="pwd" type="password" placeholder="Пароль от ЛК ФНС">
-  <div class="error" id="err" style="display:none"></div>
-  <button onclick="doLogin()">Войти и загрузить данные</button>
-  <p style="font-size:12px;color:#aaa;text-align:center;margin-bottom:20px">Данные хранятся зашифрованно</p>
+  <label>ИНН (10 или 12 цифр)</label>
+  <input id="inn" type="tel" inputmode="numeric" placeholder="041100124864">
+  <label>Пароль от ЛК ФНС</label>
+  <input id="pwd" type="password" placeholder="••••••••••••">
+  <div class="err" id="err" style="display:none"></div>
+  <button class="btn" onclick="doLogin()">Войти и загрузить данные</button>
+  <p class="hint">Данные передаются через защищённый сервер</p>
 
-  <div class="manual" id="manual-section" style="display:none">
+  <div class="manual" id="manual" style="display:none">
     <h4>📝 Или введи данные вручную</h4>
     <label>Доходы с начала года (₽)</label>
-    <input id="m_income" type="number" placeholder="0">
+    <input id="m_inc" type="number" placeholder="0" inputmode="numeric">
     <label>Налог уплачен (₽)</label>
-    <input id="m_paid" type="number" placeholder="0">
+    <input id="m_paid" type="number" placeholder="0" inputmode="numeric">
     <label>Задолженность (₽)</label>
-    <input id="m_debt" type="number" placeholder="0">
-    <button onclick="sendManual()">Сохранить данные</button>
+    <input id="m_debt" type="number" placeholder="0" inputmode="numeric">
+    <button class="btn" onclick="saveManual()">Сохранить</button>
+    <button class="btn grey" onclick="Telegram.WebApp.close()">Отмена</button>
   </div>
 </div>
 
-<div id="loading" style="display:none" class="loading">
+<div id="v-load" style="display:none" class="loading">
   <div class="spin">⚙️</div>
-  <p style="margin-top:16px;color:#888">Подключаюсь к ФНС...</p>
+  <p style="margin-top:14px;color:#888;font-size:15px">Подключаюсь к ФНС...</p>
+  <p style="font-size:12px;color:#bbb;margin-top:6px">обычно 3–5 секунд</p>
 </div>
 
-<div id="success" style="display:none" class="success">
-  <div class="icon">✅</div>
-  <h3>ФНС подключён!</h3>
-  <p style="color:#888;font-size:14px">Данные загружены</p>
-  <div class="row" id="stats"></div>
+<div id="v-ok" style="display:none" class="success">
+  <div class="ok-icon">✅</div>
+  <h3 style="font-size:20px">ФНС подключён!</h3>
+  <p style="color:#888;font-size:14px;margin-top:6px">Данные загружены и сохранены</p>
+  <div class="stats" id="stats"></div>
 </div>
 
 <script>
 const tg = window.Telegram.WebApp;
 tg.ready(); tg.expand();
 
-// Прокси URL — наш сервер пробрасывает запрос
-const PROXY = 'http://150.241.98.235:8766/fns';
+// URL нашего прокси-сервера
+const PROXY = 'http://150.241.98.235:8766/fns/login';
 
 function show(id) {
-  ['app','loading','success'].forEach(v => {
-    document.getElementById(v).style.display = v === id ? 'block' : 'none';
-  });
+  ['v-form','v-load','v-ok'].forEach(v =>
+    document.getElementById(v).style.display = v === id ? 'block' : 'none'
+  );
 }
 
 function setErr(msg) {
   const e = document.getElementById('err');
-  e.textContent = msg; e.style.display = msg ? 'block' : 'none';
-  // Показываем ручной ввод как альтернативу
-  if (msg) document.getElementById('manual-section').style.display = 'block';
+  if (msg) {
+    e.textContent = msg; e.style.display = 'block';
+    document.getElementById('manual').style.display = 'block';
+  } else {
+    e.style.display = 'none';
+  }
 }
 
 async function doLogin() {
   const inn = document.getElementById('inn').value.trim();
   const pwd = document.getElementById('pwd').value.trim();
   setErr('');
-  if (!inn || inn.length < 10) { setErr('Введи ИНН (10 или 12 цифр)'); return; }
+  if (inn.length < 10) { setErr('Введи ИНН (10 или 12 цифр)'); return; }
   if (!pwd) { setErr('Введи пароль'); return; }
-  show('loading');
 
-  let token = null;
+  show('v-load');
 
-  // Попытка 1: прямой запрос (работает если браузер в России)
   try {
-    const r = await fetch('https://lkip2.nalog.ru/api/v1/auth/login', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','User-Agent':'okhttp/4.9.0'},
-      body:JSON.stringify({inn, password:pwd})
+    const r = await fetch(PROXY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inn, password: pwd })
     });
     const d = await r.json();
-    if (d.token) { token = d; }
-    else if (d.message) { show('app'); setErr(d.message); return; }
-  } catch(e1) {
-    // Попытка 2: через наш прокси-сервер
-    try {
-      const r2 = await fetch(PROXY + '/post/v1/auth/login', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({inn, password:pwd})
-      });
-      const d2 = await r2.json();
-      if (d2.token) { token = d2; }
-      else if (d2.message) { show('app'); setErr(d2.message); return; }
-      else if (d2.error) { show('app'); setErr('Ошибка сервера. Введи данные вручную.'); return; }
-    } catch(e2) {
-      show('app');
-      setErr('Нет соединения с ФНС. Введи данные вручную ниже.');
+
+    if (!d.ok) {
+      show('v-form');
+      setErr(d.error || 'Ошибка авторизации');
       return;
     }
-  }
 
-  if (!token || !token.token) {
-    show('app'); setErr('Неверный ИНН или пароль'); return;
-  }
+    finish(inn, d.token || '', d.refresh || '', d.income_ytd || 0, d.tax_paid || 0, d.debt || 0);
 
-  // Получаем налоговые данные
-  let income = 0, paid = 0, debt = 0;
-  try {
-    const r3 = await fetch('https://lkip2.nalog.ru/api/v1/usn/income', {
-      headers:{'Authorization':'Bearer '+token.token}
-    });
-    const d3 = await r3.json();
-    income = d3.income || 0; paid = d3.taxPaid || d3.tax_paid || 0; debt = d3.debt || 0;
   } catch(e) {
-    try {
-      const r3b = await fetch(PROXY + '/get/v1/usn/income', {
-        headers:{'Authorization':'Bearer '+token.token}
-      });
-      const d3b = await r3b.json();
-      income = d3b.income || 0; paid = d3b.taxPaid || 0; debt = d3b.debt || 0;
-    } catch(e) {}
+    show('v-form');
+    setErr('Нет связи с сервером. Введи данные вручную ниже.');
   }
-
-  showSuccess(inn, token.token, token.refreshToken||'', income, paid, debt);
 }
 
-function sendManual() {
-  const income = parseFloat(document.getElementById('m_income').value||'0');
-  const paid   = parseFloat(document.getElementById('m_paid').value||'0');
-  const debt   = parseFloat(document.getElementById('m_debt').value||'0');
-  const inn    = document.getElementById('inn').value.trim();
-  showSuccess(inn, '', '', income, paid, debt);
+function saveManual() {
+  const inn  = document.getElementById('inn').value.trim();
+  const inc  = parseFloat(document.getElementById('m_inc').value || '0');
+  const paid = parseFloat(document.getElementById('m_paid').value || '0');
+  const debt = parseFloat(document.getElementById('m_debt').value || '0');
+  finish(inn, '', '', inc, paid, debt);
 }
 
-function showSuccess(inn, token, refresh, income, paid, debt) {
+function finish(inn, token, refresh, income, paid, debt) {
   document.getElementById('stats').innerHTML = `
-    <div class="stat"><div class="val">${fmt(income)}</div><div class="lbl">Доходы</div></div>
-    <div class="stat"><div class="val">${fmt(paid)}</div><div class="lbl">Уплачено</div></div>
-    <div class="stat"><div class="val">${fmt(debt)}</div><div class="lbl">Долг</div></div>
+    <div class="stat"><b>${fmt(income)}</b><small>Доходы</small></div>
+    <div class="stat"><b>${fmt(paid)}</b><small>Уплачено</small></div>
+    <div class="stat"><b>${fmt(debt)}</b><small>Долг</small></div>
   `;
-  show('success');
-  tg.sendData(JSON.stringify({inn, token, refresh, income_ytd:income, tax_paid:paid, debt}));
-  setTimeout(() => tg.close(), 2500);
+  show('v-ok');
+  tg.sendData(JSON.stringify({ inn, token, refresh, income_ytd: income, tax_paid: paid, debt }));
+  setTimeout(() => tg.close(), 3000);
 }
 
-function fmt(n) { return Math.round(n||0).toLocaleString('ru') + ' ₽'; }
+function fmt(n) { return Math.round(n || 0).toLocaleString('ru') + ' ₽'; }
 </script>
 </body>
 </html>
