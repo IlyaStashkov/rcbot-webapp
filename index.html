@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RC Bot Dashboard</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ HEADER ══════════════════════════════════════════════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <span class="header-title">📊 RC Аналитика</span>
+      <span class="header-sub" id="header-sub">Загрузка...</span>
+    </div>
+    <button class="btn-icon" id="btn-refresh" onclick="App.refresh()" title="Обновить">
+      <span id="refresh-icon">🔄</span>
+    </button>
+  </div>
+
+  <!-- ══ PAGE: HOME ══════════════════════════════════════════════════ -->
+  <div id="page-home" class="page active">
+
+    <!-- Error banner -->
+    <div class="error-banner" id="home-error"></div>
+
+    <!-- Summary card -->
+    <div class="card" id="summary-card">
+      <div class="card-title">📊 Сводка</div>
+      <div id="summary-content">
+        <!-- skeleton -->
+        <div class="sk-line w50 skeleton" style="height:18px;margin-bottom:14px"></div>
+        <div class="sk-line w90 skeleton"></div>
+        <div class="sk-line w70 skeleton"></div>
+        <div class="sk-line w80 skeleton"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+          <div class="skeleton" style="height:72px;border-radius:10px"></div>
+          <div class="skeleton" style="height:72px;border-radius:10px"></div>
+          <div class="skeleton" style="height:72px;border-radius:10px"></div>
+          <div class="skeleton" style="height:72px;border-radius:10px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menu -->
+    <div class="menu-grid">
+      <button class="menu-card" onclick="App.navigate('report')">
+        <span class="menu-emoji">📈</span>
+        <span class="menu-label">Отчёт</span>
+        <span class="menu-hint">Доходы и расходы</span>
+      </button>
+      <button class="menu-card" onclick="App.navigate('expenses')">
+        <span class="menu-emoji">📤</span>
+        <span class="menu-label">Расходы</span>
+        <span class="menu-hint">За месяц</span>
+      </button>
+      <button class="menu-card" onclick="App.navigate('objects')">
+        <span class="menu-emoji">🏠</span>
+        <span class="menu-label">Объекты</span>
+        <span class="menu-hint" id="menu-objects-hint">Загрузка...</span>
+      </button>
+      <button class="menu-card" onclick="App.navigate('bookings')">
+        <span class="menu-emoji">📅</span>
+        <span class="menu-label">Брони</span>
+        <span class="menu-hint">Заезды и выезды</span>
+      </button>
+      <button class="menu-card" onclick="App.navigate('staff')">
+        <span class="menu-emoji">👥</span>
+        <span class="menu-label">Сотрудники</span>
+        <span class="menu-hint">ФОТ и KPI</span>
+      </button>
+      <button class="menu-card" onclick="App.navigate('settings')">
+        <span class="menu-emoji">⚙️</span>
+        <span class="menu-label">Настройки</span>
+        <span class="menu-hint">RC аккаунт</span>
+      </button>
+    </div>
+
+  </div><!-- /page-home -->
+
+  <!-- ══ PAGE: REPORT ════════════════════════════════════════════════ -->
+  <div id="page-report" class="page">
+    <button class="back-btn" onclick="App.back()">← Назад</button>
+    <div class="section-header">
+      <span class="section-title">📈 Отчёт</span>
+    </div>
+
+    <!-- Month picker -->
+    <div class="month-nav">
+      <button onclick="App.reportPrevMonth()">◀</button>
+      <span class="month-label" id="report-month-label">...</span>
+      <button onclick="App.reportNextMonth()" id="btn-report-next">▶</button>
+    </div>
+
+    <div class="error-banner" id="report-error"></div>
+
+    <!-- Финансы -->
+    <div class="card">
+      <div class="card-title">💰 Финансы</div>
+      <div id="report-finance-content">
+        <div class="sk-line w90 skeleton"></div>
+        <div class="sk-line w70 skeleton"></div>
+        <div class="sk-line w80 skeleton"></div>
+        <div class="sk-line w60 skeleton"></div>
+      </div>
+    </div>
+
+    <!-- Объекты в отчёте -->
+    <div class="card">
+      <div class="card-title">🏠 По объектам</div>
+      <div id="report-objects-content">
+        <div class="sk-line w90 skeleton"></div>
+        <div class="sk-line w70 skeleton"></div>
+        <div class="sk-line w80 skeleton"></div>
+      </div>
+    </div>
+
+  </div><!-- /page-report -->
+
+  <!-- ══ PAGE: EXPENSES ══════════════════════════════════════════════ -->
+  <div id="page-expenses" class="page">
+    <button class="back-btn" onclick="App.back()">← Назад</button>
+    <div class="section-header">
+      <span class="section-title">📤 Расходы</span>
+    </div>
+
+    <div class="month-nav">
+      <button onclick="App.expPrevMonth()">◀</button>
+      <span class="month-label" id="exp-month-label">...</span>
+      <button onclick="App.expNextMonth()" id="btn-exp-next">▶</button>
+    </div>
+
+    <div class="error-banner" id="exp-error"></div>
+
+    <div class="card" id="expenses-card">
+      <div class="card-title">Статьи расходов</div>
+      <div id="expenses-content">
+        <div class="sk-line w90 skeleton"></div>
+        <div class="sk-line w70 skeleton"></div>
+        <div class="sk-line w60 skeleton"></div>
+        <div class="sk-line w80 skeleton"></div>
+      </div>
+    </div>
+
+  </div><!-- /page-expenses -->
+
+  <!-- ══ PAGE: OBJECTS ═══════════════════════════════════════════════ -->
+  <div id="page-objects" class="page">
+    <button class="back-btn" onclick="App.back()">← Назад</button>
+    <div class="section-header">
+      <span class="section-title">🏠 Объекты</span>
+      <span class="section-sub" id="objects-count"></span>
+    </div>
+
+    <div class="error-banner" id="objects-error"></div>
+
+    <div class="card" id="objects-card">
+      <div id="objects-content">
+        <div class="sk-line w90 skeleton"></div>
+        <div class="sk-line w70 skeleton"></div>
+        <div class="sk-line w80 skeleton"></div>
+        <div class="sk-line w60 skeleton"></div>
+        <div class="sk-line w90 skeleton"></div>
+      </div>
+    </div>
+
+  </div><!-- /page-objects -->
+
+  <!-- ══ PAGE: BOOKINGS ══════════════════════════════════════════════ -->
+  <div id="page-bookings" class="page">
+    <button class="back-btn" onclick="App.back()">← Назад</button>
+    <div class="section-header">
+      <span class="section-title">📅 Брони</span>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab active" onclick="App.bookingsTab('today')" id="tab-today">Сегодня</button>
+      <button class="tab" onclick="App.bookingsTab('week')"  id="tab-week">7 дней</button>
+      <button class="tab" onclick="App.bookingsTab('month')" id="tab-month">30 дней</button>
+    </div>
+
+    <div class="error-banner" id="bookings-error"></div>
+
+    <div class="card" id="bookings-card">
+      <div id="bookings-content">
+        <div class="sk-line w90 skeleton"></div>
+        <div class="sk-line w70 skeleton"></div>
+        <div class="sk-line w80 skeleton"></div>
+      </div>
+    </div>
+
+  </div><!-- /page-bookings -->
+
+  <!-- ══ PAGE: STAFF ═════════════════════════════════════════════════ -->
+  <div id="page-staff" class="page">
+    <button class="back-btn" onclick="App.back()">← Назад</button>
+    <div class="section-header">
+      <span class="section-title">👥 Сотрудники</span>
+    </div>
+
+    <div class="error-banner" id="staff-error"></div>
+
+    <div class="card" id="staff-card">
+      <div id="staff-content">
+        <div class="sk-line w90 skeleton"></div>
+        <div class="sk-line w70 skeleton"></div>
+        <div class="sk-line w80 skeleton"></div>
+      </div>
+    </div>
+
+  </div><!-- /page-staff -->
+
+  <!-- ══ PAGE: SETTINGS ══════════════════════════════════════════════ -->
+  <div id="page-settings" class="page">
+    <button class="back-btn" onclick="App.back()">← Назад</button>
+    <div class="section-header">
+      <span class="section-title">⚙️ Настройки</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Аккаунт RC</div>
+      <div id="settings-content">
+        <div class="sk-line w70 skeleton"></div>
+        <div class="sk-line w50 skeleton"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">О приложении</div>
+      <div class="list-item">
+        <div class="list-item-left">
+          <span class="list-item-icon">📊</span>
+          <div class="list-item-main">
+            <span class="list-item-name">RC Bot Dashboard</span>
+            <span class="list-item-sub">v2.0 — Vanilla JS MiniApp</span>
+          </div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-item-left">
+          <span class="list-item-icon">🔗</span>
+          <div class="list-item-main">
+            <span class="list-item-name">RealtyCalendar API</span>
+            <span class="list-item-sub" id="settings-api-status">Проверка...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-settings -->
+
+</div><!-- /app -->
+
+<script src="app.js"></script>
+</body>
+</html>
